@@ -11719,3 +11719,10 @@ http://sub.shkola112.site/	request_failed
 http://sub.shkola112.site:8080/	request_failed
 http://sub.shkola112.site:8080	request_failed
 http://sub.shkola112.site	request_failed
+
+=== 2026-10-08 04:10:58 - 失效订阅 (5 个) ===
+https://sus.clodom.link/message/api/sourlist/069959f29791190281186138312d6a48	http_403
+https://live.suancaihu.eu.org/	http_403
+https://cdn4.telesco.pe/file/e5lINPfgJciyoZWMTZ4m24n0vVpiWsw8UYdOaUMpNsiuVRcB2SeNX8UNU7CO0GDRZT_T36eqcUtCShSgX5m0vY5uhuM4p8Zyve1UeRVeqOoH2cXF_I9tpiowoGYPdbyj3iWxzaBDQryHYwrr9PvYhiLybPykSmN5MD8ua7-bJ2Tp2X3MGf257XtlSS7lFJLigywGbfiUSUq-5T1GjG5ZCuTC1TZJiBnNvG9V8SvrU-h_Peg7oxktDtvynJt1NjWFoq-oW3NBti0MwgLpC2tVLpib1HLrlb4B5c_6dqU2gaKizOUAszDXE9aUPds820LFNdpGb_tJfRx6gwMqRGzMtg	http_500
+https://cdn4.telesco.pe/file/lvHQ2zAXQmj1TnAxjZEIB8sOyhtVwUt5K4o5vzp22PhL1NvnbX6fOqALLqWHG3P4EOLMV4qGtXyiDs24q_7seZAEGGRLKObbzfdsbigIcQIDV18-LVaq1TvKsTCPwmYWsCKHnZ-qk4NIkgP-q7CDwf28Z5Ox7KpkinsX5t_sOTBmOuk-sbBdGwxOSdv-sX1S-4kVhUsGcEr3FqXk94GT62c0MmLXyj7fqd6UOUl_sb-7I_e1Pz0fdLOK4-dwtysjgiW2gMqbFRAu_oRzeEz4TdhnLUa2jIOVufprHqCB6f74xhuMm_8pm_5sVMn-7TuXtLGe1cWDb4gqOha0kue41Q	http_500
+https://mihomo-fa.ai.studio/api/sub?id=8f9p4lzy	http_404
