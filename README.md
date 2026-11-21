@@ -332,6 +332,26 @@ subconverter_backends:
 
 ---
 
+## 🤖 Cloud Robot 严格准入（新增）
+
+Actions 现在分成两道门：
+
+1. 原筛选器负责发现候选节点、去重、TCP 连通性和初筛
+2. Cloud Robot 为每个候选单独启动 Mihomo，再分别探测 ChatGPT、Gemini、Roblox
+3. 三项探测全部成功才累计连续通过天数；连续 3 个 UTC 日期通过后才进入 formal
+4. 任一应用失败、超时或状态未知，当前轮直接拒绝并清零连续成功次数
+5. US 优先、欧洲其次、亚洲最后；每轮最多深测 20 个候选
+
+发布文件：
+- `test_nodes.txt` / `test_nodes.yaml`：仅 formal 节点
+- `cloud_robot_report.json`：每个节点的应用级测试结果
+- `state/cloud_robot_state.json`：只保存节点 SHA-256 指纹、地区、协议、连续成功次数和测试结果，不保存节点 URI 或密码
+- provisional 结果只用于观察，不提交含凭据的 provisional 订阅文件
+
+若采集或准入流程失败，工作流会清空 formal 发布文件，避免旧节点继续留在固定 Raw URL 上。
+
+详细规则见 [Cloud Robot 说明](docs/CLOUD_ROBOT.md)。
+
 ## 🤖 GitHub Actions 自动化
 
 本项目完全支持 GitHub Actions，实现自动化抓取：
