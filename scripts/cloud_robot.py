@@ -47,13 +47,18 @@ def read_candidates(path,limit):
  candidates.sort(key=lambda n:(region_rank(n["country"]),n["country"],n["protocol"],n["name"]))
  return candidates[:limit],errors
 def curl_probe(proxy_url,url,accepted,timeout):
- cmd=["curl","-sS","-L","--connect-timeout","5","--max-time",str(timeout),"-o",os.devnull,"-w","%{http_code}","-x",proxy_url,url]
+ cmd=["curl","-sS","-L","--connect-timeout","5","--max-time",str(timeout),"-o",os.devnull,"-w","%{http_code}|%{time_connect}|%{time_appconnect}|%{time_total}","-x",proxy_url,url]
  try:
   result=subprocess.run(cmd,capture_output=True,text=True,timeout=timeout+3)
-  value=result.stdout.strip(); status=int(value) if value.isdigit() else 0
+  parts=result.stdout.strip().split("|")
+  try: status=int(parts[0])
+  except (ValueError,IndexError): status=0
+  def milliseconds(index):
+   try: return round(float(parts[index])*1000,2)
+   except (ValueError,IndexError): return None
   ok=result.returncode==0 and status in accepted
   reason="pass" if ok else (f"http_{status}" if status else (result.stderr.strip()[-240:] or f"curl_exit_{result.returncode}"))
-  return {"ok":ok,"status":status,"reason":reason}
+  return {"ok":ok,"status":status,"reason":reason,"tcp_connect_ms":milliseconds(1),"tls_handshake_ms":milliseconds(2),"total_ms":milliseconds(3)}
  except subprocess.TimeoutExpired:return {"ok":False,"status":0,"reason":"timeout"}
  except Exception as exc:return {"ok":False,"status":0,"reason":str(exc)[:240]}
 def probe_one(candidate,mihomo,work_dir,port,timeout):
