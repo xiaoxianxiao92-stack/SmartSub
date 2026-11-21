@@ -59,6 +59,7 @@ jobs:
         run: python -m unittest discover -s tests -p "test_cloud_robot.py" -v
 
       - name: Strict app-level admission
+        id: admission
         timeout-minutes: 20
         run: |
           python scripts/cloud_robot.py \
@@ -71,23 +72,56 @@ jobs:
           ./mihomo -t -f test_nodes.yaml
           ./mihomo -t -f test_nodes_provisional.yaml
 
+      - name: Fail closed when admission did not complete
+        if: always() && steps.admission.outcome != 'success'
+        run: |
+          echo "::warning::Admission did not complete; clearing the formal subscription to prevent stale nodes from remaining published."
+          : > test_nodes.txt
+          cat > test_nodes.yaml <<'YAML'
+          mixed-port: 7890
+          allow-lan: false
+          mode: rule
+          log-level: warning
+          proxies: []
+          proxy-groups:
+            - name: Proxy
+              type: select
+              proxies: [DIRECT]
+          rules:
+            - MATCH,DIRECT
+          YAML
+          : > test_nodes_provisional.txt
+          cat > test_nodes_provisional.yaml <<'YAML'
+          mixed-port: 7891
+          allow-lan: false
+          mode: rule
+          log-level: warning
+          proxies: []
+          proxy-groups:
+            - name: Proxy
+              type: select
+              proxies: [DIRECT]
+          rules:
+            - MATCH,DIRECT
+          YAML
+          python -c 'import json; from pathlib import Path; Path("cloud_robot_report.json").write_text(json.dumps({"summary":{"candidates_tested":0,"formal":0,"provisional":0,"rejected":0,"status":"admission_incomplete"}}, indent=2)+"\n", encoding="utf-8")'
+
       - name: Write workflow summary
         if: always()
         run: |
           if [ -f cloud_robot_report.json ]; then
             python - <<'PY'
           import json
+          import os
           from pathlib import Path
           report = json.loads(Path("cloud_robot_report.json").read_text(encoding="utf-8"))
           summary = report["summary"]
-          policy = report["policy"]
-          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+          policy = report.get("policy", {})
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
               f.write("# SmartSub Cloud Robot\n\n")
-              f.write(f"- Candidates tested: **{summary['candidates_tested']}**\n")
-              f.write(f"- Formal: **{summary['formal']}**\n")
-              f.write(f"- Provisional: **{summary['provisional']}**\n")
-              f.write(f"- Rejected: **{summary['rejected']}**\n")
-              f.write(f"- Consecutive passing days required: **{policy['required_consecutive_days']}**\n")
+              for key in ("candidates_tested", "formal", "provisional", "rejected"):
+                  f.write(f"- {key}: **{summary.get(key, 0)}**\n")
+              f.write(f"- Required consecutive passing days: **{policy.get('required_consecutive_days', 'not completed')}**\n")
               f.write("- App probes: ChatGPT / Gemini / Roblox\n")
           PY
           else
@@ -95,11 +129,11 @@ jobs:
           fi
 
       - name: Commit validated outputs and evidence
-        if: success()
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state/cloud_robot_state.json cloud_robot_report.json test_nodes.txt test_nodes.yaml
+          git add state/cloud_robot_state.json cloud_robot_report.json test_nodes.txt test_nodes.yaml test_nodes_provisional.txt test_nodes_provisional.yaml
           if ! git diff --cached --quiet; then
             git commit -m "🤖 Cloud Robot: refresh validated node pool"
             git push origin HEAD:main
