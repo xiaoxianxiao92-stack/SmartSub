@@ -222,6 +222,7 @@ jobs:
 
         # 添加文件（分别处理，避免一个失败影响全部）
         git add ./sub || true
+        git add ./test_nodes.txt ./test_nodes.yaml || true
         git add ./collected_nodes.txt || true
         git add -f ./failed_subscriptions.log || true
         git add ./blacklist.txt || true
@@ -234,6 +235,7 @@ jobs:
 
           # 捕获任何在 commit 后生成的文件变更
           git add ./sub || true
+        git add ./test_nodes.txt ./test_nodes.yaml || true
           git add ./collected_nodes.txt || true
           git add -f ./failed_subscriptions.log || true
           git add ./blacklist.txt || true
