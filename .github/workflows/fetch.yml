@@ -175,90 +175,44 @@ jobs:
           fi
         fi
 
-    - name: Run Quality Filter & Push to Telegram
-      # 只在有节点文件时才运行筛选
-      if: success() || failure()  # 即使main.py失败也尝试筛选
-      timeout-minutes: 20  # 单步超时限制（防止IP检测或测试过多导致超时）
+    - name: Run Quality Filter & Publish Subscriptions
+      if: success() || failure()
+      timeout-minutes: 20
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
-        # 优先使用 GIST_TOKEN (需要用户创建 PAT 并赋予 gist 权限)
-        # 如果不存在，尝试使用默认 GITHUB_TOKEN (通常没有 gist 权限，只能用于非 gist 操作)
         GITHUB_TOKEN: ${{ secrets.GIST_TOKEN || secrets.GITHUB_TOKEN }}
         GIST_ID: ${{ secrets.GIST_ID }}
       run: |
-        # 检查是否有节点可以筛选
         if [ -f "sub/sub_all_url_check.txt" ] || [ -f "collected_nodes.txt" ]; then
-          echo "✅ 发现节点文件，开始筛选..."
-
-          # 清除工作区中的旧结果，避免本次筛选失败时误发布上一次的节点
+          echo "发现节点文件，开始筛选..."
           rm -f sub/high_quality_nodes.txt
-
-          if python ./node_quality_filter.py; then
-            if [ -s "sub/high_quality_nodes.txt" ]; then
-              NODE_COUNT=$(grep -cve '^\s*
-
-    - name: Commit
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-
-        # 添加文件（分别处理，避免一个失败影响全部）
-        git add ./sub || true
-        git add ./test_nodes.txt || true
-        git add ./collected_nodes.txt || true
-        git add -f ./failed_subscriptions.log || true
-        git add ./blacklist.txt || true
-
-        # 检查是否有变更
-        if git diff --staged --quiet; then
-          echo "📝 没有文件变更，跳过提交"
-        else
-          git commit -m "🍀 爬取订阅源 $(date '+%Y-%m-%d %H:%M:%S')"
-
-          # 捕获任何在 commit 后生成的文件变更
-          git add ./sub || true
-          git add ./test_nodes.txt || true
-          git add ./collected_nodes.txt || true
-          git add -f ./failed_subscriptions.log || true
-          git add ./blacklist.txt || true
-
-          # 如果有新的变更，追加到提交
-          if ! git diff --staged --quiet; then
-            git commit --amend --no-edit
-          fi
-
-          # Pull latest changes to avoid conflict (使用 autostash 自动处理未暂存的变更)
-          git pull --rebase --autostash origin main
-        fi
-
-    - name: 推送更改
-      # 只在有提交时才推送
-      if: success()
-      uses:  ad-m/github-push-action@master
-      with:
-         github_token: ${{ secrets.GITHUB_TOKEN }}
-         branch: main
- sub/high_quality_nodes.txt || true)
-              echo "✅ 本次筛选产出 ${NODE_COUNT} 个节点"
-
-              # 同步本次筛选结果到固定 Raw 订阅文件
-              cp sub/high_quality_nodes.txt test_nodes.txt
-              echo "✅ 已更新 test_nodes.txt（固定在线订阅地址）"
-
-              echo "🔗 生成订阅 URL..."
-              python ./generate_subscription_url.py || echo "⚠️ 订阅URL生成遇到错误"
-            else
-              echo "❌ 筛选脚本执行成功，但没有生成有效节点文件"
-              exit 1
-            fi
-          else
-            echo "❌ 节点筛选脚本执行失败，本次不发布节点"
+          if ! python ./node_quality_filter.py; then
+            echo "节点筛选失败，本次不发布订阅"
             exit 1
           fi
+          if [ ! -s "sub/high_quality_nodes.txt" ]; then
+            echo "筛选结果为空，本次不发布订阅"
+            exit 1
+          fi
+
+          NODE_COUNT=$(grep -cve '^\s*$' sub/high_quality_nodes.txt || true)
+          echo "本次筛选产出 ${NODE_COUNT} 个节点"
+
+          cp sub/high_quality_nodes.txt test_nodes.txt
+          python ./scripts/generate_mihomo_subscription.py --input sub/high_quality_nodes.txt --output test_nodes.yaml
+
+          # 让 Mihomo 自身校验生成的配置，避免发布语法错误的 YAML
+          python ./scripts/download_mihomo.py --output ./mihomo
+          chmod +x ./mihomo
+          ./mihomo -t -f test_nodes.yaml
+
+          echo "URI 列表与 Mihomo YAML 均已生成"
+          python ./generate_subscription_url.py || echo "订阅 URL 辅助生成失败，Raw 固定链接仍可用"
         else
-          echo "⚠️ 未发现节点文件，跳过筛选和订阅更新"
+          echo "未发现节点文件，跳过筛选和订阅更新"
+          exit 1
         fi
 
     - name: Commit
