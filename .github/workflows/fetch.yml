@@ -133,7 +133,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state/cloud_robot_state.json cloud_robot_report.json test_nodes.txt test_nodes.yaml test_nodes_provisional.txt test_nodes_provisional.yaml
+          git add state/cloud_robot_state.json cloud_robot_report.json test_nodes.txt test_nodes.yaml
           if ! git diff --cached --quiet; then
             git commit -m "🤖 Cloud Robot: refresh validated node pool"
             git push origin HEAD:main
