@@ -1,258 +1,108 @@
-name: Fetch Subscriptions Source
+name: SmartSub Cloud Robot
 
-# 触发条件
 on:
   workflow_dispatch:
-
   schedule:
-    - cron: '0 20 * * *' # 北京时间凌晨4点 (UTC 20:00)
-  # watch:
-  #   types: started
-  # - cron: '0 3,12 * * *'
-  # -'0 */1 * * *'
+    - cron: "0 20 * * *"
 
-# 赋予 GITHUB_TOKEN 写权限
 permissions:
   contents: write
 
+concurrency:
+  group: smartsub-cloud-robot
+  cancel-in-progress: false
+
 jobs:
-  fetch:
+  cloud-robot:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 防止执行时间过长（30分钟超时）
+    timeout-minutes: 45
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-    - name: 迁出代码
-      uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
-    - name: 安装Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
 
-    - name: 加载缓存
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Validate repository configuration
+        run: python scripts/self_check.py
 
-    - name: 缓存代理二进制
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/smartsub
-        key: ${{ runner.os }}-smartsub-binaries-${{ hashFiles('scripts/download_singbox.py', 'scripts/download_mihomo.py') }}
-        restore-keys: |
-          ${{ runner.os }}-smartsub-binaries-
+      - name: Collect subscription sources
+        run: python main.py
 
-    - name: 设置时区
-      run: sudo timedatectl set-timezone 'Asia/Shanghai'
-
-    - name: 安装依赖
-      run: |
-        pip install -r ./requirements.txt
-
-    - name: 配置自检
-      run: |
-        python scripts/self_check.py || echo "⚠️ self_check 提示警告"
-
-    - name: 验证 Secrets 配置
-      env:
-        GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIST_ID: ${{ secrets.GIST_ID }}
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: |
-        chmod +x scripts/validate_secrets.sh
-        bash scripts/validate_secrets.sh
-
-    - name: Run main.py
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
-        PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-      run: |
-        python ./main.py || echo "⚠️ main.py 执行遇到错误，但继续执行"
-
-    - name: Select dynamic probe head (optional)
-      if: success() || failure()
-      run: |
-        if [ -s "collected_nodes.txt" ]; then
-          echo "🛰️ Selecting dynamic probe head..."
-          python ./node_quality_filter.py --probe-only || echo "⚠️ probe-only 执行失败"
-        else
-          echo "⚠️ collected_nodes.txt 不存在或为空，跳过动态探测头"
-        fi
-
-    - name: Bootstrap sing-box proxy (optional)
-      if: success() || failure()
-      env:
-        FALLBACK_PROXY_URL: ${{ vars.DYNAMIC_PROBE_PROXY_URL }}
-      run: |
-        PROXY_URL=""
-        mkdir -p runtime
-        if [ -f "runtime/probe_head.json" ]; then
-          echo "🧩 生成 sing-box 配置..."
-          python ./scripts/generate_singbox_config.py --probe-json runtime/probe_head.json --output runtime/singbox-probe.json --http-port 7891 --socks-port 7890
-          echo "⬇️ 下载 sing-box..."
-          python ./scripts/download_singbox.py --output ./sing-box
-          chmod +x ./sing-box
-          ./sing-box version || true
-          echo "🔎 校验 sing-box 配置..."
-          if ! ./sing-box check -c runtime/singbox-probe.json; then
-            echo "⚠️ sing-box 配置校验失败，切换备用客户端"
-          else
-            echo "🚀 启动 sing-box 本地代理..."
-            ./sing-box run -c runtime/singbox-probe.json > runtime/singbox.log 2>&1 &
-            sleep 5
-            if curl -fsS -m 8 --connect-timeout 5 -x http://127.0.0.1:7891 https://www.google.com/generate_204 >/dev/null; then
-              PROXY_URL="http://127.0.0.1:7891"
-              echo "SINGBOX_PROXY_STARTED=1" >> $GITHUB_ENV
-              echo "✅ sing-box 代理可用"
-            else
-              echo "⚠️ sing-box 代理测试失败，切换备用客户端"
-              echo "---- sing-box.log (tail) ----"
-              tail -n 200 runtime/singbox.log || true
-              ps aux | grep '[s]ing-box' || true
-              ss -lntp 2>/dev/null | grep 7891 || true
-            fi
+      - name: Initial candidate screening
+        timeout-minutes: 20
+        run: |
+          if [ ! -s collected_nodes.txt ] && [ ! -s sub/sub_all_url_check.txt ]; then
+            echo "::error::Collector produced no candidate input"
+            exit 1
           fi
-
-          if [ -z "$PROXY_URL" ]; then
-            echo "🧩 生成 mihomo 配置..."
-            python ./scripts/generate_mihomo_config.py --probe-json runtime/probe_head.json --output runtime/mihomo-probe.yaml --mixed-port 7892 --log-level info
-            echo "⬇️ 下载 mihomo..."
-            python ./scripts/download_mihomo.py --output ./mihomo
-            chmod +x ./mihomo
-            ./mihomo -v || true
-            echo "🚀 启动 mihomo 本地代理..."
-            ./mihomo -f runtime/mihomo-probe.yaml > runtime/mihomo.log 2>&1 &
-            sleep 5
-            if curl -fsS -m 8 --connect-timeout 5 -x http://127.0.0.1:7892 https://www.google.com/generate_204 >/dev/null; then
-              PROXY_URL="http://127.0.0.1:7892"
-              echo "MIHOMO_PROXY_STARTED=1" >> $GITHUB_ENV
-              echo "✅ mihomo 代理可用"
-            else
-              echo "⚠️ mihomo 代理测试失败"
-              echo "---- mihomo.log (tail) ----"
-              tail -n 200 runtime/mihomo.log || true
-              ps aux | grep '[m]ihomo' || true
-              ss -lntp 2>/dev/null | grep 7892 || true
-            fi
-          fi
-
-          if [ -n "$PROXY_URL" ]; then
-            echo "DYNAMIC_PROBE_PROXY_URL=$PROXY_URL" >> $GITHUB_ENV
-          elif [ -n "$FALLBACK_PROXY_URL" ]; then
-            echo "⚠️ 本地代理失败，使用回退代理"
-            echo "DYNAMIC_PROBE_PROXY_URL=$FALLBACK_PROXY_URL" >> $GITHUB_ENV
-          else
-            echo "⚠️ 本地代理失败，且未配置回退代理"
-          fi
-        elif [ -n "$FALLBACK_PROXY_URL" ]; then
-          echo "⚠️ 未生成 probe_head.json，使用回退代理"
-          echo "DYNAMIC_PROBE_PROXY_URL=$FALLBACK_PROXY_URL" >> $GITHUB_ENV
-        else
-          echo "⚠️ 未生成 probe_head.json，且未配置回退代理"
-        fi
-
-    - name: Fetch CN probe results (optional)
-      env:
-        CN_PROBE_URL: ${{ secrets.CN_PROBE_URL }}
-        CN_PROBE_TOKEN: ${{ secrets.CN_PROBE_TOKEN }}
-      if: ${{ env.CN_PROBE_URL != '' }}
-      run: |
-        mkdir -p sub
-        if [ -n "$CN_PROBE_URL" ]; then
-          echo "Fetching CN probe results..."
-          if [ -n "$CN_PROBE_TOKEN" ]; then
-            curl -fsSL -H "Authorization: Bearer $CN_PROBE_TOKEN" "$CN_PROBE_URL" -o sub/cn_probe.json || echo "⚠️ CN probe fetch failed"
-          else
-            curl -fsSL "$CN_PROBE_URL" -o sub/cn_probe.json || echo "⚠️ CN probe fetch failed"
-          fi
-        fi
-
-    - name: Run Quality Filter & Publish Subscriptions
-      if: success() || failure()
-      timeout-minutes: 20
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GIST_TOKEN || secrets.GITHUB_TOKEN }}
-        GIST_ID: ${{ secrets.GIST_ID }}
-      run: |
-        if [ -f "sub/sub_all_url_check.txt" ] || [ -f "collected_nodes.txt" ]; then
-          echo "发现节点文件，开始筛选..."
           rm -f sub/high_quality_nodes.txt
-          if ! python ./node_quality_filter.py; then
-            echo "节点筛选失败，本次不发布订阅"
-            exit 1
-          fi
-          if [ ! -s "sub/high_quality_nodes.txt" ]; then
-            echo "筛选结果为空，本次不发布订阅"
-            exit 1
-          fi
+          python node_quality_filter.py
+          test -s sub/high_quality_nodes.txt
 
-          NODE_COUNT=$(grep -cve '^\s*$' sub/high_quality_nodes.txt || true)
-          echo "本次筛选产出 ${NODE_COUNT} 个节点"
-
-          cp sub/high_quality_nodes.txt test_nodes.txt
-          python ./scripts/generate_mihomo_subscription.py --input sub/high_quality_nodes.txt --output test_nodes.yaml
-
-          # 让 Mihomo 自身校验生成的配置，避免发布语法错误的 YAML
-          python ./scripts/download_mihomo.py --output ./mihomo
+      - name: Download Mihomo
+        run: |
+          python scripts/download_mihomo.py --output ./mihomo
           chmod +x ./mihomo
+          ./mihomo -v
+
+      - name: Run cloud robot unit tests
+        run: python -m unittest discover -s tests -p "test_cloud_robot.py" -v
+
+      - name: Strict app-level admission
+        timeout-minutes: 20
+        run: |
+          python scripts/cloud_robot.py \
+            --input sub/high_quality_nodes.txt \
+            --state state/cloud_robot_state.json \
+            --mihomo ./mihomo \
+            --max-candidates 20 \
+            --required-days 3 \
+            --timeout 10
           ./mihomo -t -f test_nodes.yaml
+          ./mihomo -t -f test_nodes_provisional.yaml
 
-          echo "URI 列表与 Mihomo YAML 均已生成"
-          python ./generate_subscription_url.py || echo "订阅 URL 辅助生成失败，Raw 固定链接仍可用"
-        else
-          echo "未发现节点文件，跳过筛选和订阅更新"
-          exit 1
-        fi
-
-    - name: Commit
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-
-        # 添加文件（分别处理，避免一个失败影响全部）
-        git add ./sub || true
-        git add ./test_nodes.txt ./test_nodes.yaml || true
-        git add ./collected_nodes.txt || true
-        git add -f ./failed_subscriptions.log || true
-        git add ./blacklist.txt || true
-
-        # 检查是否有变更
-        if git diff --staged --quiet; then
-          echo "📝 没有文件变更，跳过提交"
-        else
-          git commit -m "🍀 爬取订阅源 $(date '+%Y-%m-%d %H:%M:%S')"
-
-          # 捕获任何在 commit 后生成的文件变更
-          git add ./sub || true
-        git add ./test_nodes.txt ./test_nodes.yaml || true
-          git add ./collected_nodes.txt || true
-          git add -f ./failed_subscriptions.log || true
-          git add ./blacklist.txt || true
-
-          # 如果有新的变更，追加到提交
-          if ! git diff --staged --quiet; then
-            git commit --amend --no-edit
+      - name: Write workflow summary
+        if: always()
+        run: |
+          if [ -f cloud_robot_report.json ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("cloud_robot_report.json").read_text(encoding="utf-8"))
+          summary = report["summary"]
+          policy = report["policy"]
+          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("# SmartSub Cloud Robot\n\n")
+              f.write(f"- Candidates tested: **{summary['candidates_tested']}**\n")
+              f.write(f"- Formal: **{summary['formal']}**\n")
+              f.write(f"- Provisional: **{summary['provisional']}**\n")
+              f.write(f"- Rejected: **{summary['rejected']}**\n")
+              f.write(f"- Consecutive passing days required: **{policy['required_consecutive_days']}**\n")
+              f.write("- App probes: ChatGPT / Gemini / Roblox\n")
+          PY
+          else
+            echo "Cloud robot report was not generated." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # Pull latest changes to avoid conflict (使用 autostash 自动处理未暂存的变更)
-          git pull --rebase --autostash origin main
-        fi
-
-    - name: 推送更改
-      # 只在有提交时才推送
-      if: success()
-      uses:  ad-m/github-push-action@master
-      with:
-         github_token: ${{ secrets.GITHUB_TOKEN }}
-         branch: main
+      - name: Commit validated outputs and evidence
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/cloud_robot_state.json cloud_robot_report.json test_nodes.txt test_nodes.yaml
+          if ! git diff --cached --quiet; then
+            git commit -m "🤖 Cloud Robot: refresh validated node pool"
+            git push origin HEAD:main
+          else
+            echo "No changes to publish."
+          fi
