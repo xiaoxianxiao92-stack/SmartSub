@@ -1,5 +1,526 @@
 {
   "schema_version": 1,
   "required_consecutive_days": 3,
-  "nodes": {}
+  "nodes": {
+    "bafead7b0e18aaac852e0bcb4a8d1b508cada5c461c95e5423f1b8c16305a163": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 12",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:08:59.934252+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "03030e7004534bd9121314688fce058f3fcf3cd6bebf012ef60fd810e3bbf937": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 129",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:07.981578+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "5cc2bc02a7834a7a6b5525b9d747084c4d9d46c8c9ebe637a8ecfe8d6eb68204": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 132",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:16.029045+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "66f9ff52cb8625957ec381bb2c631a1001b99acb6d4b402e86942006d22ddfb4": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 139",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:24.076534+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "51ac28bfa173b4837d51363e474704e445eabb428d0cf83353f982c1b85fd90c": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 143",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:32.123409+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "1c2dcc645b178ac3cb9dca2aa9e0361216cd6b71a92dce1baf1d9647e10c25ce": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 144",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:40.171292+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "e6ab6edea4dcf2e1fe151fbcc6562a91dfb0d6d84791a9f38efe3b610a483070": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 145",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:48.220652+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "94faa4900087b8d8d03e4c6e994735991465863b5980fbf0b3c85d731696a879": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 149",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:09:58.527876+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "dd48a687576cfd91016ac19c6b2b3316dc1c05eff9f2841dac1addc87a5a5c17": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 150",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:06.576816+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "45c2b64c7162aa0a0b5749b689ad0cefbe7a9b5025d6790371829a059b2fc34d": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 20",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:14.622969+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "31d6c6c2580d0cb526460003b006382a4e4fc791bf99361bb521dfd1bb06ce05": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 24",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:22.669355+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "40000f427211498c01952a5b2e0bc42dee912b7a73abf0bda274d664c9b227f5": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 26",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:30.716872+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "efea674db1d1c8c9e40dc999047b48f201a56ea808ca456805bc2931246d0883": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 30",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:38.765111+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "f1e3f0393be50ca105de02823b1864f32ddd04b609059cff5e06c13460d2a727": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 32",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:48.622587+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "80bdf0a7d6d18fb0eaf9b5dd749cfe4cb98bc9038a0729c1518e5c824ec01fba": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 33",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:10:57.802242+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "7e44e7dded6058c2aebae59f439bf587a0076920f30899b4e1c574099c350587": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 37",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:11:05.848124+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "cbcd3acd629a279ab9aef8353c5fd85b2f675ef1311a51771a3db85e585ae3c5": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 41",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:11:13.895472+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "8ae37a532908b195c145fdb7af012668b9e88013fac9978bb51c561754df1fb9": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 43",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:11:21.943168+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "29f824671ac1811854573e06dd325b82fcbcd15ce97d9f1866dcd4386f559a1c": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 51",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:11:29.990166+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    },
+    "83e871cce7bd30e0df75a19ab2e423303e6fb54e8e4f6f71c1289dd74f9d5c39": {
+      "country": "US",
+      "protocol": "vless",
+      "name": "🇺🇸 US Vless 57",
+      "status": "rejected",
+      "pass_streak": 0,
+      "last_test_date": "2026-11-21",
+      "last_test_at": "2026-11-21T12:11:38.038868+00:00",
+      "app_results": {
+        "chatgpt": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "gemini": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        },
+        "roblox": {
+          "ok": false,
+          "status": 0,
+          "reason": "mihomo_start_failed"
+        }
+      }
+    }
+  }
 }
