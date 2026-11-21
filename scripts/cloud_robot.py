@@ -58,7 +58,7 @@ def curl_probe(proxy_url,url,accepted,timeout):
    except (ValueError,IndexError): return None
   ok=result.returncode==0 and status in accepted
   reason="pass" if ok else (f"http_{status}" if status else (result.stderr.strip()[-240:] or f"curl_exit_{result.returncode}"))
-  return {"ok":ok,"status":status,"reason":reason,"tcp_connect_ms":milliseconds(1),"tls_handshake_ms":milliseconds(2),"total_ms":milliseconds(3)}
+  return {"ok":ok,"status":status,"reason":reason,"proxy_connect_ms":milliseconds(1),"tls_handshake_ms":milliseconds(2),"total_ms":milliseconds(3)}
  except subprocess.TimeoutExpired:return {"ok":False,"status":0,"reason":"timeout"}
  except Exception as exc:return {"ok":False,"status":0,"reason":str(exc)[:240]}
 def probe_one(candidate,mihomo,work_dir,port,timeout):
