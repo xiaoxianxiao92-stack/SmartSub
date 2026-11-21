@@ -42,7 +42,7 @@ def read_candidates(path,limit):
    proxy=build_proxy(uri); country=extract_country(uri,proxy); node_id=stable_node_id(proxy)
    if node_id in seen:continue
    seen.add(node_id)
-   candidates.append({"id":node_id,"uri":uri,"proxy":proxy,"country":country,"protocol":proxy.get("type","unknown"),"name":proxy.get("name",f"node-{line_no}")})
+   candidates.append({"id":node_id,"uri":uri,"proxy":proxy,"country":country,"protocol":proxy.get("type","unknown"),"name":urllib.parse.unquote(urllib.parse.urlsplit(uri).fragment) or f"{country} {proxy.get('type', 'node').upper()} {line_no}"})
   except Exception as exc:errors.append({"line":line_no,"error":str(exc)})
  candidates.sort(key=lambda n:(region_rank(n["country"]),n["country"],n["protocol"],n["name"]))
  return candidates[:limit],errors
@@ -73,7 +73,7 @@ def probe_one(candidate,mihomo,work_dir,port,timeout):
    if not ready:
     try:tail=log_path.read_text(encoding="utf-8",errors="replace")[-500:]
     except Exception:tail=""
-    return {name:{"ok":False,"status":0,"reason":"mihomo_start_failed "+tail} for name,_,_ in APP_PROBES}
+    return {name:{"ok":False,"status":0,"reason":"mihomo_start_failed"} for name,_,_ in APP_PROBES}
    return {name:curl_probe(proxy_url,url,accepted,timeout) for name,url,accepted in APP_PROBES}
   finally:
    if process.poll() is None:
