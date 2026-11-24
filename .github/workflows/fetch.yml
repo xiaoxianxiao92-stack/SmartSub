@@ -32,6 +32,16 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Install Scrapling browser engines
+        run: scrapling install
+
+      - name: Discover public subscription sources
+        timeout-minutes: 12
+        env:
+          SMARTSUB_DISCOVERY_MAX_REPOS: "40"
+          SMARTSUB_DISCOVERY_MAX_PAGES: "80"
+        run: python scripts/super_collector.py
+
       - name: Validate repository configuration
         run: python scripts/self_check.py
 
@@ -56,7 +66,7 @@ jobs:
           ./mihomo -v
 
       - name: Run cloud robot unit tests
-        run: python -m unittest discover -s tests -p "test_cloud_robot.py" -v
+        run: python -m unittest discover -s tests -v
 
       - name: Strict app-level admission
         id: admission
@@ -123,6 +133,13 @@ jobs:
                   f.write(f"- {key}: **{summary.get(key, 0)}**\n")
               f.write(f"- Required consecutive passing days: **{policy.get('required_consecutive_days', 'not completed')}**\n")
               f.write("- App probes: ChatGPT / Gemini / Roblox\n")
+          collector_report = Path("super_collector_report.json")
+          if collector_report.exists():
+              discovery = json.loads(collector_report.read_text(encoding="utf-8")).get("stats", {})
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+                  f.write("\n## Super Collector\n")
+                  for key in ("github_repositories", "gitlab_repositories", "pages_fetched", "browser_fallbacks", "sources_found", "pages_found", "errors"):
+                      f.write(f"- {key}: **{discovery.get(key, 0)}**\n")
           PY
           else
             echo "Cloud robot report was not generated." >> "$GITHUB_STEP_SUMMARY"
@@ -134,6 +151,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add state/cloud_robot_state.json cloud_robot_report.json test_nodes.txt test_nodes.yaml
+          if [ -f super_collector_report.json ]; then git add super_collector_report.json; fi
           if ! git diff --cached --quiet; then
             git commit -m "🤖 Cloud Robot: refresh validated node pool"
             git push origin HEAD:main
