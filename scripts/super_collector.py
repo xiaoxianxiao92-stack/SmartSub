@@ -74,7 +74,6 @@ def is_subscription_candidate(value: str) -> bool:
     parsed = urlparse(value)
     if parsed.path.lower().endswith(STATIC_SUFFIXES):
         return False
-    host = (parsed.hostname or "").lower()
     return bool(SUBSCRIPTION_HINTS.search(value))
 
 
