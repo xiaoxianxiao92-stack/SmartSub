@@ -138,7 +138,7 @@ jobs:
               discovery = json.loads(collector_report.read_text(encoding="utf-8")).get("stats", {})
               with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
                   f.write("\n## Super Collector\n")
-                  for key in ("github_repositories", "pages_fetched", "browser_fallbacks", "sources_found", "pages_found", "errors"):
+                  for key in ("github_repositories", "gitlab_repositories", "pages_fetched", "browser_fallbacks", "sources_found", "pages_found", "errors"):
                       f.write(f"- {key}: **{discovery.get(key, 0)}**\n")
           PY
           else
