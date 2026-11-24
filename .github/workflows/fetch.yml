@@ -132,14 +132,14 @@ jobs:
               for key in ("candidates_tested", "formal", "provisional", "rejected"):
                   f.write(f"- {key}: **{summary.get(key, 0)}**\n")
               f.write(f"- Required consecutive passing days: **{policy.get('required_consecutive_days', 'not completed')}**\n")
-              f.write("- App probes: ChatGPT / Gemini / Roblox\\n")
+              f.write("- App probes: ChatGPT / Gemini / Roblox\n")
           collector_report = Path("super_collector_report.json")
           if collector_report.exists():
               discovery = json.loads(collector_report.read_text(encoding="utf-8")).get("stats", {})
               with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
-                  f.write("\\n## Super Collector\\n")
+                  f.write("\n## Super Collector\n")
                   for key in ("github_repositories", "pages_fetched", "browser_fallbacks", "sources_found", "pages_found", "errors"):
-                      f.write(f"- {key}: **{discovery.get(key, 0)}**\\n")
+                      f.write(f"- {key}: **{discovery.get(key, 0)}**\n")
           PY
           else
             echo "Cloud robot report was not generated." >> "$GITHUB_STEP_SUMMARY"
