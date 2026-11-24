@@ -202,7 +202,8 @@ class SuperCollector:
                 if not full_name or not html_url:
                     continue
                 self.stats["github_repositories"] += 1
-                self.pages.add(html_url)
+                if len(self.pages) < self.max_pages:
+                    self.pages.add(html_url)
                 encoded_branch = quote(branch, safe="")
                 readme = f"https://raw.githubusercontent.com/{full_name}/{encoded_branch}/README.md"
                 page = self.fetch_page(readme)
@@ -274,7 +275,8 @@ class SuperCollector:
                 if not project_id or not namespace:
                     continue
                 self.stats["gitlab_repositories"] += 1
-                self.pages.add(str(project.get("web_url") or f"https://gitlab.com/{namespace}"))
+                if len(self.pages) < self.max_pages:
+                    self.pages.add(str(project.get("web_url") or f"https://gitlab.com/{namespace}"))
                 encoded_branch = quote(branch, safe="")
                 readme = f"https://gitlab.com/{namespace}/-/raw/{encoded_branch}/README.md"
                 page = self.fetch_page(readme)
