@@ -39,7 +39,7 @@ QUERIES = (
 )
 SUBSCRIPTION_HINTS = re.compile(
     r"(sub(?:scribe)?|config|clash|v2ray|sing.?box|proxy|nodes?|all\.(?:txt|yaml|yml)|"
-    r"base64|)", re.I
+    r"base64)", re.I
 )
 NODE_PATTERN = re.compile(r"(?:vmess|ss|trojan|vless|hysteria2|tuic)://", re.I)
 STATIC_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".css", ".js", ".woff", ".zip", ".pdf")
