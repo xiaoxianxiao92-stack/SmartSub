@@ -883,6 +883,30 @@ class SubscriptionCollector:
         if self.list_subscribe:
             logger.info(f'加载 {len(self.list_subscribe)} 个直连订阅源...')
             url_list.extend(self.list_subscribe)
+
+        # Super Collector runtime discoveries are ephemeral inputs; the existing
+        # subscription validator and strict Cloud Robot admission remain authoritative.
+        runtime_dir = os.path.join(self.base_dir, 'runtime')
+        discovered_sources = os.path.join(runtime_dir, 'super_collector_sources.txt')
+        discovered_pages = os.path.join(runtime_dir, 'super_collector_pages.txt')
+        for path, label in ((discovered_sources, '自动发现订阅源'), (discovered_pages, '自动发现网页')):
+            if not os.path.isfile(path):
+                continue
+            try:
+                with open(path, 'r', encoding='utf-8') as handle:
+                    entries = [line.strip() for line in handle if line.strip()]
+                safe_entries = [item for item in entries if is_safe_url(item)]
+                logger.info(f'加载{label}: {len(safe_entries)} / {len(entries)}')
+                if path == discovered_sources:
+                    url_list.extend(safe_entries)
+                else:
+                    for page_url in safe_entries:
+                        found = self.fetch_urls_from_page(page_url)
+                        if found:
+                            url_list.extend(found)
+            except OSError as exc:
+                logger.warning(f'读取{label}失败: {type(exc).__name__}')
+        url_list = list(dict.fromkeys(item for item in url_list if is_safe_url(str(item))))
         self.save_collected_nodes()
         return url_list
     def run(self):
