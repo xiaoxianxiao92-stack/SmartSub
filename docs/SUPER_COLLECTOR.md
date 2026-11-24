@@ -4,7 +4,7 @@ The Super Collector is the source-discovery stage that runs before the existing 
 
 ## Current discovery engines
 
-- GitHub repository search for V2Ray, Clash, sing-box, and public proxy subscription projects
+- GitHub and GitLab project search for V2Ray, Clash, sing-box, and public proxy subscription projects
 - Bounded Git tree inspection for likely subscription/config artifacts
 - DuckDuckGo HTML search for public subscription pages and repositories
 - Scrapling HTTP fetching, with Scrapling's headless browser fetcher as a fallback for JavaScript-rendered pages
