@@ -352,6 +352,14 @@ Actions 现在分成两道门：
 
 详细规则见 [Cloud Robot 说明](docs/CLOUD_ROBOT.md)。
 
+## 🕸️ Super Collector 自动发现
+
+Action 会先通过 GitHub 仓库搜索、公开网页搜索、仓库文件树扫描和 Scrapling 页面抓取发现新的候选订阅源，再交给现有采集、去重、筛选和 Cloud Robot 严格准入流程。发现结果与统计单独保存，质量准入规则不因采集量扩大而放宽。
+
+详见 [Super Collector 文档](docs/SUPER_COLLECTOR.md)
+
+---
+
 ## 🤖 GitHub Actions 自动化
 
 本项目完全支持 GitHub Actions，实现自动化抓取：
