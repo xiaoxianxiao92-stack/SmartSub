@@ -75,9 +75,7 @@ def is_subscription_candidate(value: str) -> bool:
     if parsed.path.lower().endswith(STATIC_SUFFIXES):
         return False
     host = (parsed.hostname or "").lower()
-    return bool(SUBSCRIPTION_HINTS.search(value)) or host in {
-        "raw.githubusercontent.com", "gist.githubusercontent.com"
-    }
+    return bool(SUBSCRIPTION_HINTS.search(value))
 
 
 def normalize_url(value: str, base: str = "") -> str:
@@ -148,7 +146,7 @@ class SuperCollector:
                     candidate = normalize_url(unquote(target[0]))
             if candidate and public_https_url(candidate):
                 links.append(candidate)
-        return list(dict.fromkeys(links))
+        return list(dict.fromkeys(links))[:100]
 
     def add_candidate(self, url: str):
         url = normalize_url(url)
