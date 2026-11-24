@@ -106,7 +106,7 @@ class SuperCollector:
         self.session.headers.update({"User-Agent": "SmartSub-SuperCollector/1.0 (+public-source-discovery)"})
         self.sources: set[str] = set()
         self.pages: set[str] = set()
-        self.stats = {"github_repositories": 0, "pages_fetched": 0, "browser_fallbacks": 0,
+        self.stats = {"github_repositories": 0, "gitlab_repositories": 0, "pages_fetched": 0, "browser_fallbacks": 0,
                       "sources_found": 0, "pages_found": 0, "errors": 0}
 
     def fetch_page(self, url: str):
@@ -245,6 +245,78 @@ class SuperCollector:
                     self.stats["errors"] += 1
                 time.sleep(0.15)
 
+
+    def gitlab_discovery(self):
+        api = "https://gitlab.com/api/v4/projects"
+        for query in ("v2ray subscription", "clash proxy subscription"):
+            if self.stats["gitlab_repositories"] >= self.max_repos:
+                break
+            try:
+                response = self.session.get(
+                    api,
+                    params={"search": query, "simple": "true", "order_by": "last_activity_at",
+                            "sort": "desc", "per_page": min(20, self.max_repos)},
+                    timeout=15,
+                )
+                if response.status_code in (403, 429):
+                    break
+                response.raise_for_status()
+                projects = response.json()
+            except (requests.RequestException, ValueError):
+                self.stats["errors"] += 1
+                continue
+            for project in projects:
+                if self.stats["gitlab_repositories"] >= self.max_repos:
+                    break
+                project_id = project.get("id")
+                namespace = str(project.get("path_with_namespace", ""))
+                branch = str(project.get("default_branch") or "main")
+                if not project_id or not namespace:
+                    continue
+                self.stats["gitlab_repositories"] += 1
+                self.pages.add(str(project.get("web_url") or f"https://gitlab.com/{namespace}"))
+                encoded_branch = quote(branch, safe="")
+                readme = f"https://gitlab.com/{namespace}/-/raw/{encoded_branch}/README.md"
+                page = self.fetch_page(readme)
+                if page is not None:
+                    body = page if isinstance(page, str) else ""
+                    if not body:
+                        try:
+                            body = page.get_all_text()
+                        except Exception:
+                            body = ""
+                    for found in re.findall(r"https://[^\\s\\"'<>\\\\]+", body or ""):
+                        self.add_candidate(found.rstrip(").,;]"))
+
+                tree_url = f"https://gitlab.com/api/v4/projects/{project_id}/repository/tree"
+                try:
+                    tree = self.session.get(
+                        tree_url,
+                        params={"recursive": "true", "per_page": 100, "ref": branch},
+                        timeout=15,
+                    )
+                    if tree.status_code == 200:
+                        likely = [
+                            entry.get("path", "") for entry in tree.json()
+                            if entry.get("type") == "blob"
+                            and entry.get("path", "").lower().endswith((".txt", ".yaml", ".yml", ".json"))
+                            and re.search(r"(sub|config|proxy|node|clash|v2ray|sing.?box)", entry.get("path", ""), re.I)
+                        ][:4]
+                        for path in likely:
+                            raw_url = f"https://gitlab.com/{namespace}/-/raw/{encoded_branch}/{quote(path, safe='/')}"
+                            artifact = self.fetch_page(raw_url)
+                            body = artifact if isinstance(artifact, str) else ""
+                            if artifact is not None and not body:
+                                try:
+                                    body = artifact.get_all_text()
+                                except Exception:
+                                    body = ""
+                            if body and (NODE_PATTERN.search(body) or "proxies:" in body):
+                                self.sources.add(raw_url)
+                except (requests.RequestException, ValueError):
+                    self.stats["errors"] += 1
+                time.sleep(0.15)
+
     def search_web(self):
         for query in QUERIES:
             if len(self.pages) >= self.max_pages:
@@ -281,6 +353,7 @@ class SuperCollector:
 
     def run(self) -> dict:
         self.github_discovery()
+        self.gitlab_discovery()
         self.search_web()
         self.crawl_discovered_pages()
         RUNTIME.mkdir(parents=True, exist_ok=True)
