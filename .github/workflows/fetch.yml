@@ -66,7 +66,7 @@ jobs:
           ./mihomo -v
 
       - name: Run cloud robot unit tests
-        run: python -m unittest discover -s tests -p "test_cloud_robot.py" -v
+        run: python -m unittest discover -s tests -v
 
       - name: Strict app-level admission
         id: admission
