@@ -68,6 +68,17 @@ def public_https_url(value: str) -> bool:
         return False
 
 
+async def guard_browser_requests(page):
+    """Validate every browser navigation/subresource, including redirect targets."""
+    async def guard(route):
+        if public_https_url(route.request.url):
+            await route.continue_()
+        else:
+            await route.abort()
+
+    await page.route("**/*", guard)
+
+
 def is_subscription_candidate(value: str) -> bool:
     if not public_https_url(value):
         return False
@@ -103,7 +114,7 @@ class SuperCollector:
             return None
         try:
             if Fetcher is not None:
-                page = Fetcher.get(url, timeout=15, stealthy_headers=True)
+                page = Fetcher.get(url, timeout=15, stealthy_headers=True, follow_redirects="safe")
                 if getattr(page, "status", 0) < 400:
                     self.stats["pages_fetched"] += 1
                     return page
@@ -111,7 +122,7 @@ class SuperCollector:
             pass
         if self.browser_fallback and StealthyFetcher is not None:
             try:
-                page = StealthyFetcher.fetch(url, headless=True, disable_resources=True, timeout=20000)
+                page = StealthyFetcher.fetch(url, headless=True, disable_resources=True, timeout=20000, page_setup=guard_browser_requests)
                 if getattr(page, "status", 0) < 400:
                     self.stats["pages_fetched"] += 1
                     self.stats["browser_fallbacks"] += 1
@@ -119,10 +130,19 @@ class SuperCollector:
             except Exception:
                 self.stats["errors"] += 1
         try:
-            response = self.session.get(url, timeout=15, allow_redirects=True)
-            if response.status_code < 400 and len(response.content) <= 3 * 1024 * 1024:
-                self.stats["pages_fetched"] += 1
-                return response.text
+            current = url
+            for _ in range(4):
+                response = self.session.get(current, timeout=15, allow_redirects=False)
+                if response.is_redirect or response.is_permanent_redirect:
+                    target = normalize_url(response.headers.get("Location", ""), current)
+                    if not target or not public_https_url(target):
+                        return None
+                    current = target
+                    continue
+                if response.status_code < 400 and len(response.content) <= 3 * 1024 * 1024:
+                    self.stats["pages_fetched"] += 1
+                    return response.text
+                return None
         except requests.RequestException:
             self.stats["errors"] += 1
         return None
