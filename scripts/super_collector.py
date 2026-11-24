@@ -15,7 +15,7 @@ import re
 import socket
 import time
 from pathlib import Path
-from urllib.parse import parse_qs, quote_plus, urljoin, urlparse
+from urllib.parse import parse_qs, quote, quote_plus, unquote, urljoin, urlparse
 
 import requests
 
@@ -143,6 +143,10 @@ class SuperCollector:
         links = []
         for item in raw:
             candidate = normalize_url(str(item), base)
+            if candidate and (urlparse(candidate).hostname or "").lower().endswith("duckduckgo.com"):
+                target = parse_qs(urlparse(candidate).query).get("uddg", [])
+                if target:
+                    candidate = normalize_url(unquote(target[0]))
             if candidate and public_https_url(candidate):
                 links.append(candidate)
         return list(dict.fromkeys(links))
@@ -183,20 +187,46 @@ class SuperCollector:
                     continue
                 self.stats["github_repositories"] += 1
                 self.pages.add(html_url)
-                readme = f"https://raw.githubusercontent.com/{full_name}/{quote_plus(branch)}/README.md"
+                encoded_branch = quote(branch, safe="")
+                readme = f"https://raw.githubusercontent.com/{full_name}/{encoded_branch}/README.md"
                 page = self.fetch_page(readme)
-                if page is None:
-                    continue
-                text = page if isinstance(page, str) else ""
-                if not text:
-                    try:
-                        text = page.get_all_text()
-                    except Exception:
-                        text = ""
-                for found in re.findall(r"https://[^\s\"'<>\\]+", text or ""):
-                    self.add_candidate(found.rstrip(").,;]"))
-                for link in self.page_links(page, readme):
-                    self.add_candidate(link)
+                if page is not None:
+                    text = page if isinstance(page, str) else ""
+                    if not text:
+                        try:
+                            text = page.get_all_text()
+                        except Exception:
+                            text = ""
+                    for found in re.findall(r"https://[^\s\"'<>\\]+", text or ""):
+                        self.add_candidate(found.rstrip(").,;]"))
+                    for link in self.page_links(page, readme):
+                        self.add_candidate(link)
+
+                # Inspect a bounded Git tree for likely subscription/config artifacts.
+                tree_api = f"https://api.github.com/repos/{full_name}/git/trees/{encoded_branch}?recursive=1"
+                try:
+                    tree_response = self.session.get(tree_api, timeout=15)
+                    if tree_response.status_code == 200:
+                        entries = tree_response.json().get("tree", [])
+                        likely = [
+                            entry.get("path", "") for entry in entries
+                            if entry.get("type") == "blob"
+                            and entry.get("path", "").lower().endswith((".txt", ".yaml", ".yml", ".json"))
+                            and re.search(r"(sub|config|proxy|node|clash|v2ray|sing.?box)", entry.get("path", ""), re.I)
+                        ][:4]
+                        for path in likely:
+                            raw_url = f"https://raw.githubusercontent.com/{full_name}/{encoded_branch}/{quote(path, safe='/')}"
+                            artifact = self.fetch_page(raw_url)
+                            body = artifact if isinstance(artifact, str) else ""
+                            if artifact is not None and not body:
+                                try:
+                                    body = artifact.get_all_text()
+                                except Exception:
+                                    body = ""
+                            if body and (NODE_PATTERN.search(body) or "proxies:" in body):
+                                self.sources.add(raw_url)
+                except (requests.RequestException, ValueError):
+                    self.stats["errors"] += 1
                 time.sleep(0.15)
 
     def search_web(self):
