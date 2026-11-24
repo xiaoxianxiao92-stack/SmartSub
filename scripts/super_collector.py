@@ -121,14 +121,13 @@ class SuperCollector:
                     return page
             except Exception:
                 self.stats["errors"] += 1
-        else:
-            try:
-                response = self.session.get(url, timeout=15, allow_redirects=True)
-                if response.status_code < 400 and len(response.content) <= 3 * 1024 * 1024:
-                    self.stats["pages_fetched"] += 1
-                    return response.text
-            except requests.RequestException:
-                self.stats["errors"] += 1
+        try:
+            response = self.session.get(url, timeout=15, allow_redirects=True)
+            if response.status_code < 400 and len(response.content) <= 3 * 1024 * 1024:
+                self.stats["pages_fetched"] += 1
+                return response.text
+        except requests.RequestException:
+            self.stats["errors"] += 1
         return None
 
     @staticmethod
