@@ -37,6 +37,7 @@ class SuperCollectorUrlTests(unittest.TestCase):
             resolver.return_value = [(None, None, None, None, ("185.199.108.133", 443))]
             self.assertFalse(is_subscription_candidate("https://raw.githubusercontent.com/example/repo/main/README.md"))
 
+    @patch("scripts.super_collector.socket.getaddrinfo")
     def test_duckduckgo_redirect_unwraps_target(self, resolver):
         resolver.return_value = [(None, None, None, None, ("8.8.8.8", 443))]
         from scripts.super_collector import SuperCollector
