@@ -31,7 +31,9 @@ class SuperCollectorUrlTests(unittest.TestCase):
         self.assertTrue(is_subscription_candidate("https://example.com/subscribe"))
         self.assertFalse(is_subscription_candidate("https://example.com/logo.png"))
 
-    def test_duckduckgo_redirect_unwraps_target(self):
+    @patch("scripts.super_collector.socket.getaddrinfo")
+    def test_duckduckgo_redirect_unwraps_target(self, resolver):
+        resolver.return_value = [(None, None, None, None, ("8.8.8.8", 443))]
         from scripts.super_collector import SuperCollector
         links = SuperCollector.page_links(
             'https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fsubscribe',
